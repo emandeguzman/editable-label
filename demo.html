@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>editable-label demo</title>
     <script>!function(e,t){typeof module!="undefined"?module.exports=t():typeof define=="function"&&typeof define.amd=="object"?define(t):this[e]=t()}("domready",function(){var e=[],t,n=typeof document=="object"&&document,r=n&&n.documentElement.doScroll,i="DOMContentLoaded",s=n&&(r?/^loaded|^c/:/^loaded|^i|^c/).test(n.readyState);return!s&&n&&n.addEventListener(i,t=function(){n.removeEventListener(i,t),s=1;while(t=e.shift())t()}),function(t){s?setTimeout(t,0):e.push(t)}})</script>
+    <link rel="stylesheet" href="editable-label.css">
     <link rel="stylesheet" href="busy-icon/busy-icon.css">
     <script defer src="busy-icon/busy-icon.js"></script>
     <style>
@@ -107,6 +108,15 @@
 
     </section>
 
-    <script src="./editable_element.js"></script>
+
+    <section>
+        <h3>Shows error</h3>
+        <editable-label data-url="./backend.json">editable</editable-label>
+        <code>
+            &lt;editable-label data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
+        </code>
+    </section>
+
+    <script src="./editable-label.js"></script>
 </body>
 </html>

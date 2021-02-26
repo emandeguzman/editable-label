@@ -1,28 +1,5 @@
 "use strict";
 (()=>{
-/*
-<span class="editable-container editable-inline">
-    <div>
-        <div class="editableform-loading" hidden></div>
-        <form class="form-inline editableform" style="">
-            <div class="control-group">
-                <div>
-                    <div class="editable-input" style="position: relative;">
-                        <input type="text" style="padding-right: 24px;">
-                        <span class="editable-clear-x"></span>
-                    </div>
-                    <div class="editable-buttons">
-                        <button type="submit" class="editable-submit">ok</button>
-                        <button type="button" class="editable-cancel">cancel</button>
-                    </div>
-                </div>
-                <div class="editable-error-block" hidden></div>
-            </div>
-        </form>
-    </div>
-</span>
-*/  
-
 function dirurl() {
     return Array.from(document.querySelectorAll("script")).find(s=>/\/editable_element\.[^\/]+$/.test(s.src)).src.replace(/\/editable_element\.[^\/]+$/, "");
 }
@@ -37,16 +14,16 @@ const editableElementTextInputTemplate =
         <div></div>
     </span>
 </form>`;
-customElements.define("editable-elementtext", class extends HTMLElement {
+customElements.define("editable-label-text-input", class extends HTMLElement {
     // constructor() {
     //     super();
     //     this._inputEl;
     // }
 
     connectedCallback() {
-        this.attachShadow({mode: 'open'});
-        this._root = this.shadowRoot;
-        // this._root = this;
+        // this.attachShadow({mode: 'open'});
+        // this._root = this.shadowRoot;
+        this._root = this;
 
         this._root.innerHTML = editableElementTextInputTemplate;
 
@@ -381,12 +358,16 @@ customElements.define("editable-label", class extends HTMLElement {
 
     //#region private options
     set _errmsg(msg){
+        const errmsgbox = this._root.querySelector(".errmsgbox");
         if (msg === undefined || msg === null || msg == '') {
-            this._hide(this._root.querySelector(".errmsgbox"));
+            errmsgbox.textContent = '';
+            this._hide(errmsgbox);
+            errmsgbox.style.display = "none";
         }
         else {
-            this._root.querySelector(".errmsgbox").textContent = msg;
-            this._show(this._root.querySelector(".errmsgbox"));
+            errmsgbox.textContent = msg;
+            this._show(errmsgbox);
+            errmsgbox.style.display = "block";
         }
     }
     //#endregion
@@ -427,7 +408,7 @@ customElements.define("editable-label", class extends HTMLElement {
         const editableInputElementTag = (()=>{
             switch (this.type){
                 case 'text':
-                    return "editable-elementtext";
+                    return "editable-label-text-input";
                 default:
                     return this.type;
             }
@@ -467,10 +448,12 @@ customElements.define("editable-label", class extends HTMLElement {
         this._hide(this._placeholder);
         this._hide(this._busyIcon);
         this._hide(this._editorWrapper);
+        this._editorWrapper.style.display="none";
 
         switch(mode){
             case 'edit':
                 this._show(this._editorWrapper);
+                this._editorWrapper.style.display="flex";
             break;
             case 'no-edit':
                 this._show(this._placeholder);

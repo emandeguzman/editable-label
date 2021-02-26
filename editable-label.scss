@@ -1,0 +1,174 @@
+editable-label-text-input {
+    form {
+        position: relative;
+        min-height: 100%;
+        display: flex;
+        
+        
+    }
+
+    input {
+        align-self: stretch;
+        font-size: 1em;
+        padding: 5px 1.2em 5px 5px;
+    }
+
+    .ee-clear-x {
+        position: absolute;
+        top: 50%;
+        right: 3px;
+        transform: translateY(-50%);
+        width: 1em;
+        height: 1em;
+        border-radius: 50%;
+        background: #ccc;
+        cursor: pointer;
+    }
+
+    .ee-clear-x div {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 55%;
+        height: 3px;
+        background-color: #fff;
+    }
+
+    .ee-clear-x div:nth-child(1) {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .ee-clear-x div:nth-child(2) {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+        form {
+        position: relative;
+        min-height: 100%;
+        display: flex;
+    }
+
+    input {
+        align-self: stretch;
+        font-size: 1em;
+        padding: 5px 1.2em 5px 5px;
+    }
+
+    .ee-clear-x {
+        position: absolute;
+        top: 50%;
+        right: 3px;
+        transform: translateY(-50%);
+        width: 1em;
+        height: 1em;
+        border-radius: 50%;
+        background: #ccc;
+        cursor: pointer;
+    }
+
+    .ee-clear-x div {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 55%;
+        height: 3px;
+        background-color: #fff;
+    }
+
+    .ee-clear-x div:nth-child(1) {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .ee-clear-x div:nth-child(2) {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+}
+
+
+
+editable-label {
+    .placeholder {
+        border-bottom: dashed 1px #0088cc;
+        color: #005194;
+        cursor: pointer;
+
+        &.editable-empty {
+            font-style: italic;
+            color: #DD1144;
+        }
+        &.disabled {
+            border-bottom: 0;
+            color: var(--editable-element-disabled-color, #005194);
+        }
+    }
+
+    .editor {
+        position: relative;
+    }
+    
+    .errmsgbox {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        
+        border-radius: 3px;
+        padding: .3em;
+        
+        display: flex;
+        align-items: center;
+        
+        color: #fff;
+        background: #ff5555;
+        white-space: nowrap;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 7px;
+            width: 7px;
+            height: 7px;
+            transform: rotate(45deg);
+            background: #ff5555;
+            // background: blue;
+            // z-index: -1;
+        }
+    }
+
+    // // #region set submit & cancel buttons text
+    // .ee-submit::after {
+    //     content: "\02713";
+    // }
+    // .ee-cancel::after {
+    //     content: "\02717";
+    // }
+    // // #endregion
+
+    // // #region makes sure all elements are in just one row
+    // .ee-inputcont {
+    //     display: flex;
+
+    //     >*:nth-child(1) {
+    //         align-self: stretch;
+    //     }
+    // }
+    // .ee-buttons {
+    //     display: flex;
+    // }
+    // // #endregion
+
+    // // #region make sure input element is not shorter than buttons
+    // .ee-inputcont {
+    //     >*:nth-child(1) {
+    //         align-self: stretch;
+    //     }
+    // }
+    // // #endregion
+
+    // // #region error block
+    // .ee-error-block {
+    //     width: auto;
+    //     max-width: 300px;
+    //     color: red;
+    // }
+    // // #endregion
+}
