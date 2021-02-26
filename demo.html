@@ -117,6 +117,32 @@
         </code>
     </section>
 
+
+    <section>
+        <h3>With validate</h3>
+        <editable-label id="with-validate">editable</editable-label>
+        <script>
+            domready(()=>{
+                document.querySelector("editable-label#with-validate").validate = (value)=>{
+                    if (value !== "correct value") return `Value must be "correct value"`;
+                }
+            })
+        </script>
+
+        <code>
+<pre>
+&lt;editable-label id="with-validate"&gt;editable&lt;/editable-label&gt;
+&lt;script&gt;
+    domready(()=&gt;{
+        document.querySelector("editable-label#with-validate").validate = (value)=&gt;{
+            if (value !== "correct value") return `Value must be "correct value"`;
+        }
+    })
+&lt;/script&gt;
+</pre>
+        </code>
+    </section>
+
     <script src="./editable-label.js"></script>
 </body>
 </html>

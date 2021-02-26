@@ -291,8 +291,13 @@ customElements.define("editable-label", class extends HTMLElement {
     }
     //#endregion
 
-    //get validate(){}
-    //set validate(val) {}
+    get validate(){
+        return this._validate ? this._validate : ()=>{};
+    }
+    set validate(val) {
+        if (typeof val == "function") this._validate = val;
+        else console.error(`Validate must be a function`);
+    }
 
     //#region value
     get value() {
@@ -472,11 +477,22 @@ customElements.define("editable-label", class extends HTMLElement {
             resolve();
         })
         //#endregion
-        //#region get new value to set
-        .then(() => {
+        //#region validate new value
+        .then(()=>{
+            const result = this._validate(this._inputElement.value);
+            if (typeof result == "string") {
+                throw new Error(result);
+            }
+            else {
+                return (this._inputElement.value)
+            }
+        })
+        //#endregion
+        //#region url is set -> build data and send to backend; otherwise build value for next step
+        .then((newval) => {
             //#region if url is set -> send a post request to url
             if (this.url) {
-                //#region pk && name must be set
+                //#region pk or name not set -> throw error
                 if (!this.pk || !this.name){
                     throw new Error(`"pk" and "name" must also be set`);
                 }
@@ -488,7 +504,7 @@ customElements.define("editable-label", class extends HTMLElement {
                     
                     //#region params is set -> adjust form data base on params value
                     if (this.params) {
-                        const defdata = {pk:this.pk, name:this.name, value:this._inputElement.value};
+                        const defdata = {pk:this.pk, name:this.name, value:newval};
                         let d;
                         try {
                             switch(typeof this.params) {
@@ -523,7 +539,7 @@ customElements.define("editable-label", class extends HTMLElement {
                     else {
                         formData.append("pk", this.pk);
                         formData.append("name", this.name);
-                        formData.append("value", this._inputElement.value);
+                        formData.append("value", newval);
                     }
                     //#endregion
                     return formData;
@@ -537,7 +553,7 @@ customElements.define("editable-label", class extends HTMLElement {
                 })
                 .then(res => {
                     if (res.ok) {
-                        return {newValue: this._inputElement.value, response: res};
+                        return {newValue: newval, response: res};
                     }
                     else {
                         return res.text()
@@ -554,20 +570,19 @@ customElements.define("editable-label", class extends HTMLElement {
             //#endregion
             //#region else -> just update value
             else {
-                return {newValue: this._inputElement.value, response: undefined};
+                return {newValue: newval, response: undefined};
             }
             //#endregion
         })
         //#endregion
-        //#region save new value and dispatch "save" event
-        .then((saveEventDetail)=>{
-            // console.log(`saveEventDetail`, saveEventDetail)
-            this.value = saveEventDetail.newValue;
+        //#region save new value and dispatch "change" event
+        .then((changes)=>{
+            this.value = changes.newValue;
             // this.dispatchEvent(new CustomEvent("save", {
             this.dispatchEvent(new CustomEvent("change", {
                 bubbles: true,
                 composed: true,
-                detail: saveEventDetail
+                detail: changes
             }));
         })
         //#endregion
