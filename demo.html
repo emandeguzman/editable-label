@@ -5,14 +5,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>editable-label demo</title>
+    <script>!function(e,t){typeof module!="undefined"?module.exports=t():typeof define=="function"&&typeof define.amd=="object"?define(t):this[e]=t()}("domready",function(){var e=[],t,n=typeof document=="object"&&document,r=n&&n.documentElement.doScroll,i="DOMContentLoaded",s=n&&(r?/^loaded|^c/:/^loaded|^i|^c/).test(n.readyState);return!s&&n&&n.addEventListener(i,t=function(){n.removeEventListener(i,t),s=1;while(t=e.shift())t()}),function(t){s?setTimeout(t,0):e.push(t)}})</script>
     <link rel="stylesheet" href="../busy-icon/busy-icon.css">
     <script defer src="../busy-icon/busy-icon.js"></script>
     <style>
+        body {
+            background: #fff;
+        }
         section {
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 3px;
             padding: 5px 20px;
+            background: #eee;
         }
         code {
             margin-top: 5px;
@@ -36,8 +41,70 @@
         <h3>Save to Backend</h3>
         <editable-label id="name" data-pk="1" data-url="./backend.json">editable</editable-label>
         <code>
-            &lt;editable-label&gt;editable&lt;/editable-label&gt;
+            &lt;editable-label id="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
         </code>
+    </section>
+
+
+    <section>
+        <h3>With params</h3>
+
+        <div>
+            <h4>Using object</h4>
+
+            <editable-label id="with-object-params" data-name="name" data-pk="1" data-url="./backend.json">editable</editable-label>
+            <script>
+                domready(()=>{
+                    document.querySelector("editable-label#with-object-params").params={param1: "param1val", param2: "param2val"};
+                })
+            </script>
+            <code>
+<pre>
+&lt;editable-label id="with-object-params" data-name="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
+&lt;script&gt;
+    domready(()=&gt;{
+        document.querySelector("editable-label#with-object-params").params={param1: "param1val", param2: "param2val"};
+    })
+&lt;/script&gt;
+</pre>
+            </code>
+        </div>
+
+        <div>
+            <h4>Using function</h4>
+
+            <editable-label id="with-function-params" data-name="name" data-pk="1" data-url="./backend.json">editable</editable-label>
+            <script>
+                domready(()=>{
+                    document.querySelector("editable-label#with-function-params").params = function(params){
+                        return {
+                            pk: params.pk,
+                            name: 'new name',
+                            value: params.value,
+                            param1: 'new param val',
+                        }
+                    };
+                })
+            </script>
+            <code>
+                <pre>
+&lt;editable-label id="with-function-params" data-name="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
+&lt;script&gt;
+    domready(()=&gt;{
+        document.querySelector("editable-label#with-function-params").params = function(params){
+            return {
+                pk: params.pk,
+                name: 'new name',
+                value: params.value,
+                param1: 'new param val',
+            }
+        };
+    })
+&lt;/script&gt;
+                </pre>
+            </code>
+        </div>
+
     </section>
 
     <script src="./editable_element.js"></script>

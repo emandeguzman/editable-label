@@ -251,30 +251,14 @@ customElements.define("editable-label", class extends HTMLElement {
     //get onblur(){}
     //set onblur(val) {}
 
-    //     //#region params
-    //     get params() {
-    //         return this._options.params ? this._options.params : this.getAttribute("data-params") ? this.getAttribute("data-params") : null;
-    //     }
-    //     set params(val) {
-    //         let paramtype;
-    //         switch (paramtype = typeof val) {
-    //             case "function":
-    //                 this._options.params = val;
-    //                 this.setAttribute("data-params", `<<function>>`);
-    //             break;
-    //             case "object":
-    //                 this._options.params = val;
-    //                 this.setAttribute("data-params", `<<object>>`);
-    //             break;
-    //             case "string":
-    //                 this._options.params = val;
-    //                 this.setAttribute("data-params", val);
-    //             break;
-    //             default:
-    //                 console.error(new Error(`"params" cannot be of type ${paramtype}`));
-    //         }
-    //     }
-    //     //#endregion
+    //#region params
+    get params() {
+        return this._params ? this._params : null;
+    }
+    set params(val) {
+        this._params = val;
+    }
+    //#endregion
 
     //#region pk
     get pk() {
@@ -518,47 +502,47 @@ customElements.define("editable-label", class extends HTMLElement {
                 //#region set formdata to send
                 const formData = (()=>{
                     const formData = new FormData();
-                    //                 ////:: set form data value base on params property if set
-                    //                 if (this.params) {
-                    //                     const defdata = {pk:this.pk, name:this.name, value:val};
-                    //                     let d;
-                    //                     try {
-                    //                         switch(typeof this.params) {
-                    //                             case "function":
-                    //                                 d = this.params(defdata);
-                    //                             break;
-                    //                             case "object":
-                    //                                 d = {...defdata, ...this.params};
-                    //                             break;
-                    //                             case "string":
-                    //                                 d = {...defdata, ...JSON.parse(this.params)};
-                    //                             break;
-                    //                             default:
-                    //                                 throw new Error(`Unexpected param type`);
-                    //                         }
-                    //                         for (const key in d) {
-                    //                             if (d.hasOwnProperty(key)) {
-                    //                                 if (typeof d[key] == "object") {
-                    //                                     for (const k in d[key]) {
-                    //                                         formData.append(`${key}[${k}]`, `${d[key][k]}`);
-                    //                                     }
-                    //                                 }
-                    //                                 else formData.append(key, d[key]);
-                    //                             }
-                    //                         }
-                    //                     } catch (error) {
-                    //                         console.error(error);
-                    //                     }
-                    //                 }
-                    //                 ////::end
-                    //                 ////:: else
-                    //                 else {
-                    formData.append("pk", this.pk);
-                    formData.append("name", this.name);
-                    formData.append("value", this._inputElement.value);
-                    //                 }
-                    //                 ////::end
-                    //                 ////::end
+                    
+                    //#region params is set -> adjust form data base on params value
+                    if (this.params) {
+                        const defdata = {pk:this.pk, name:this.name, value:this._inputElement.value};
+                        let d;
+                        try {
+                            switch(typeof this.params) {
+                                case "function":
+                                    d = this.params(defdata);
+                                break;
+                                case "object":
+                                    d = {...defdata, ...this.params};
+                                break;
+                                // case "string":
+                                //     d = {...defdata, ...JSON.parse(this.params)};
+                                // break;
+                                default:
+                                    throw new Error(`Unexpected param type`);
+                            }
+                            for (const key in d) {
+                                if (d.hasOwnProperty(key)) {
+                                    if (typeof d[key] == "object") {
+                                        for (const k in d[key]) {
+                                            formData.append(`${key}[${k}]`, `${d[key][k]}`);
+                                        }
+                                    }
+                                    else formData.append(key, d[key]);
+                                }
+                            }
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+                    //#endregion
+                    //#region else just use pk, name and value properties
+                    else {
+                        formData.append("pk", this.pk);
+                        formData.append("name", this.name);
+                        formData.append("value", this._inputElement.value);
+                    }
+                    //#endregion
                     return formData;
                 })();
                 //#endregion
