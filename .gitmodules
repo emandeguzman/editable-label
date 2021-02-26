@@ -1,0 +1,3 @@
+[submodule "busy-icon"]
+	path = busy-icon
+	url = https://github.com/emandeguzman/busy-icon.git

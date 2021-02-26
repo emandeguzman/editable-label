@@ -578,7 +578,7 @@ customElements.define("editable-label", class extends HTMLElement {
         //#endregion
         //#region save new value and dispatch "save" event
         .then((saveEventDetail)=>{
-            console.log(`saveEventDetail`, saveEventDetail)
+            // console.log(`saveEventDetail`, saveEventDetail)
             this.value = saveEventDetail.newValue;
             // this.dispatchEvent(new CustomEvent("save", {
             this.dispatchEvent(new CustomEvent("change", {
