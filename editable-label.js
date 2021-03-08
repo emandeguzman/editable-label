@@ -479,7 +479,8 @@ customElements.define("editable-label", class extends HTMLElement {
         //#endregion
         //#region validate new value
         .then(()=>{
-            const result = this._validate(this._inputElement.value);
+            const validate = this.validate;
+            const result = validate(this._inputElement.value);
             if (typeof result == "string") {
                 throw new Error(result);
             }
