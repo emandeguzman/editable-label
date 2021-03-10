@@ -29,7 +29,7 @@
     </style>
 </head>
 <body>
-    <section>
+    <section data-name="Basic Usage">
         <h3>Basic Usage</h3>
         <editable-label>editable</editable-label>
         <code>
@@ -38,7 +38,19 @@
     </section>
 
 
-    <section>
+    <section data-name="Empty">
+        <h3>Empty</h3>
+        <div class="sample">
+            <editable-label></editable-label>
+        </div>
+        <code>
+            &lt;editable-label&gt;&lt;/editable-label&gt;
+        </code>
+
+    </section>
+
+
+    <section data-name="Save to Backend">
         <h3>Save to Backend</h3>
         <editable-label id="name" data-pk="1" data-url="./backend.json">editable</editable-label>
         <code>
@@ -47,7 +59,7 @@
     </section>
 
 
-    <section>
+    <section data-name="With params">
         <h3>With params</h3>
 
         <div>
@@ -109,7 +121,7 @@
     </section>
 
 
-    <section>
+    <section data-name="Shows error">
         <h3>Shows error</h3>
         <editable-label data-url="./backend.json">editable</editable-label>
         <code>
@@ -118,7 +130,7 @@
     </section>
 
 
-    <section>
+    <section data-name="With validate">
         <h3>With validate</h3>
         <editable-label id="with-validate">editable</editable-label>
         <script>

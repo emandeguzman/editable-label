@@ -4,6 +4,10 @@ function dirurl() {
     return Array.from(document.querySelectorAll("script")).find(s=>/\/editable_element\.[^\/]+$/.test(s.src)).src.replace(/\/editable_element\.[^\/]+$/, "");
 }
 
+function log() {
+    console.log(...arguments);
+}
+
 //<link rel="stylesheet" href="${dirurl()}/editable_element_text.min.css">
 const editableElementTextInputTemplate = 
 `
@@ -91,6 +95,126 @@ customElements.define("editable-label-text-input", class extends HTMLElement {
     //#endregion
 });
 
+const editableElementSelectInputTemplate = 
+`
+<form>
+    <select></select>
+    <span class="ee-clear-x">
+        <div></div>
+        <div></div>
+    </span>
+</form>`;
+customElements.define("editable-label-select-input", class extends HTMLElement {
+    connectedCallback() {
+        // this.attachShadow({mode: 'open'});
+        // this._root = this.shadowRoot;
+        this._root = this;
+
+        this._root.innerHTML = editableElementSelectInputTemplate;
+
+        //#region define reference to input element parts
+        this._inputEl = this._root.querySelector("select");
+        const form = this._root.querySelector("form");
+        //#endregion
+
+        //#region event handlers
+
+        //#region catch form submit event (indicates submit new value)
+        form.addEventListener("submit", (e)=>{
+            e.preventDefault();
+            this.dispatchEvent(new CustomEvent("submit", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    value: this._inputEl.value
+                }
+            }));
+        })
+        //#endregion
+
+        //#region catch esc key as an alternative cancel
+        // this._inputEl.addEventListener("keyup", (e)=>{
+        //     if (e.key == "Escape" || e.key == "Esc") { // escape key
+        //             this.dispatchEvent(new CustomEvent("cancel", {
+        //                 bubbles: true,
+        //                 composed: true,
+        //                 detail: {
+        //                     reason: "Escape key is pressed."
+        //                 }
+        //             }));
+        //     }
+        // })
+        //#endregion
+
+       //#region clear event handler
+       // this._root.querySelector(".ee-clear-x").addEventListener("click", ()=>{
+       //     this._inputEl.value = "";
+       //     window.requestAnimationFrame(()=>this._inputEl.focus());
+       // });
+       //#endregion
+
+        //#endregion
+    }
+
+    //#region methods to be implemented by all editable inputs
+    /**
+     * Called when editable-label goes into edit mode
+     * @param {string} value 
+     */
+    activate(value) {
+        //set source
+        this._buildOptions(this.closest("editable-label").source);
+
+        this._inputEl.value = value;
+
+        window.requestAnimationFrame(()=>this._inputEl.focus());
+    }
+
+    focus() {
+        this._inputEl.focus();
+    }
+
+    get value() {
+        return this._inputEl.value;
+    }
+
+    set source(val) {
+        this._buildOptions(val);
+    }
+
+    //#endregion
+
+    _buildOptions(options) {
+        if (!Array.isArray(options)) {
+            console.error(`Expecting parameter to be an array`);
+            return;
+        }
+
+        this._inputEl.innerHTML = ''; //remove previous options
+
+        options.map(opt=>{
+            if (typeof opt !== "object") {
+                console.error(`Expecting parameter to be an array of objects`);
+                return;
+            }
+
+            if (["value", "text"].every(prop=>{
+                if (!opt.hasOwnProperty(prop)) {
+                    console.error(`Property "${prop}" is not defined`);
+                    return false;
+                }
+                return true;
+            }) == false) return;
+
+            const option = document.createElement("OPTION");
+            option.textContent = opt.text;
+            option.value = opt.value;
+
+            this._inputEl.appendChild(option);
+        })
+    }
+});
+
 
 const editableElementTemplate = 
 `<a class="placeholder"></a>
@@ -103,24 +227,24 @@ const editableElementTemplate =
 </span>`;
 customElements.define("editable-label", class extends HTMLElement {
     //#region constructor
-//     constructor() {
-//         super();
-//         this._root;
-// 
-//         //NOTE: placeholder is defined early since it is used when setting this custom element's value
-//         this._placeholder = document.createElement("A"); //DO NOT REDEFINE _placeholder
-//         this._placeholder.classList.add("placeholder");
-// 
-//         //#region options holder
-//         this._options = {};
-//         //# endregion
-// 
-//         //#region define reference to html elements of this custom element
-//         this._busyIcon;
-//         this._controlWrapper;
-//         this._errBlock;
-//         //# endregion 
-//     }
+    // constructor() {
+    //     super();
+    //     this._root;
+    // 
+    //     //NOTE: placeholder is defined early since it is used when setting this custom element's value
+    //     this._placeholder = document.createElement("A"); //DO NOT REDEFINE _placeholder
+    //     this._placeholder.classList.add("placeholder");
+    // 
+    //     //#region options holder
+    //     this._options = {};
+    //     //# endregion
+    // 
+    //     //#region define reference to html elements of this custom element
+    //     this._busyIcon;
+    //     this._controlWrapper;
+    //     this._errBlock;
+    //     //# endregion 
+    // }
     //#endregion 
 
     //#region options
@@ -267,7 +391,18 @@ customElements.define("editable-label", class extends HTMLElement {
     //get toggle(){}
     //set toggle(val) {}
     //#endregion 
+    //#endregion ###
 
+    // property for select element type
+    get source() {
+        return this._source;
+    }
+    set source(val) {
+        this._source = val;
+        if (this._inputElement) this._inputElement.source = val;
+    }
+
+    //#region ###
     //#region type
     get type() {
         return this.hasAttribute("data-type") ? this.getAttribute("data-type") : 'text';
@@ -414,6 +549,8 @@ customElements.define("editable-label", class extends HTMLElement {
             switch (this.type){
                 case 'text':
                     return "editable-label-text-input";
+                case 'select':
+                    return "editable-label-select-input";
                 default:
                     return this.type;
             }
@@ -594,7 +731,7 @@ customElements.define("editable-label", class extends HTMLElement {
         //#endregion
         //#region error handling
         .catch((err) => {
-            console.log(err)
+            log(err)
             this._errmsg = err.message;
             this._switchMode('edit');
             window.requestAnimationFrame(() => this._inputElement.focus());
@@ -627,6 +764,8 @@ customElements.define("editable-label", class extends HTMLElement {
         this._root.querySelector(".btnCancel").addEventListener("click", ()=>this._switchMode('no-edit'));   // cross button clicked -> end editing mode, discarding any changes
         ////::end event handlers
     }   //connectedCallback end
+
+
 })
 
 })();
