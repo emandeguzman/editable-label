@@ -5,13 +5,14 @@ function dirurl() {
 }
 
 function log() {
-    console.log(...arguments);
+    console.groupCollapsed(...arguments);
+    console.trace(); // hidden in collapsed group
+    console.groupEnd();    
 }
 
-//<link rel="stylesheet" href="${dirurl()}/editable_element_text.min.css">
+// //<link rel="stylesheet" href="${dirurl()}/editable_element_text.min.css">
 const editableElementTextInputTemplate = 
-`
-<form>
+`<form>
     <input type="text" value="">
     <span class="ee-clear-x">
         <div></div>
@@ -19,85 +20,92 @@ const editableElementTextInputTemplate =
     </span>
 </form>`;
 customElements.define("editable-label-text-input", class extends HTMLElement {
-    // constructor() {
-    //     super();
-    //     this._inputEl;
-    // }
+    //#region elements
+    get _elInput(){return this._root.querySelector('input')}
+    get _elForm(){return this._root.querySelector('form')}
+    get _elClearBtn(){return this._root.querySelector('.ee-clear-x')}
+    //#endregion
 
+    //#region methods to be implemented by all editable inputs
+    get value() {
+        return this._elInput.value;
+    }
+    set value(val) {
+        this._elInput.value = val;
+    }
+
+    displayValue = (val)=>{
+        return val;
+    }
+
+    focus() {
+        this._elInput.focus();
+    }
+
+    _dispatchSubmitEvent = ()=>{
+        this.dispatchEvent(new CustomEvent("submit", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                value: this._elInput.value
+            }
+        }));
+    }
+
+    _dispatchCancelEvent = ()=>{
+        this.dispatchEvent(new CustomEvent("cancel", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                reason: "Escape key is pressed."
+            }
+        }));
+    }
+
+    // _dispatchInputEvent = (event)=>{
+    //     this.dispatchEvent(event);
+    // } 
+    //#endregion
+    
     connectedCallback() {
         // this.attachShadow({mode: 'open'});
         // this._root = this.shadowRoot;
         this._root = this;
 
+        //preserver text content for possible setting of value
+        const textContent = this.textContent;
+
         this._root.innerHTML = editableElementTextInputTemplate;
 
-        //#region define reference to input element parts
-        this._inputEl = this._root.querySelector("input");
-        const form = this._root.querySelector("form");
-        //#endregion
+        //set value from either textcontent or data-value attribute (CANNOT USE value ACCESSOR, MUST GET VALUE BEFORE ALTERING ELEMENT)
+        this.value = this.hasAttribute('data-value') ? this.getAttribute('data-value') : textContent;
 
         //#region event handlers
-
         //#region catch form submit event (indicates submit new value)
-        form.addEventListener("submit", (e)=>{
+        this._elForm.addEventListener("submit", (e)=>{
             e.preventDefault();
-            this.dispatchEvent(new CustomEvent("submit", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    value: this._inputEl.value
-                }
-            }));
+            this._dispatchSubmitEvent();
         })
         //#endregion
-
         //#region catch esc key as an alternative cancel
-        this._inputEl.addEventListener("keyup", (e)=>{
+        this._elInput.addEventListener("keyup", (e)=>{
             if (e.key == "Escape" || e.key == "Esc") { // escape key
-                    this.dispatchEvent(new CustomEvent("cancel", {
-                        bubbles: true,
-                        composed: true,
-                        detail: {
-                            reason: "Escape key is pressed."
-                        }
-                    }));
+                this._dispatchCancelEvent();
             }
         })
         //#endregion
-
-       //#region clear event handler
-       this._root.querySelector(".ee-clear-x").addEventListener("click", ()=>{
-           this._inputEl.value = "";
-           window.requestAnimationFrame(()=>this._inputEl.focus());
-       });
-       //#endregion
-
+        //#region clear event handler
+        this._elClearBtn.addEventListener("click", ()=>{
+            this._elInput.value = "";
+                this._elInput.focus()
+        });
+        //#endregion
         //#endregion
     }
-
-    //#region methods to be implemented by all editable inputs
-    /**
-     * Called when editable-label goes into edit mode
-     * @param {string} value 
-     */
-    activate(value) {
-        this._inputEl.value = value;
-        window.requestAnimationFrame(()=>this._inputEl.focus());
-    }
-
-    focus() {
-        this._inputEl.focus();
-    }
-
-    get value() {
-        return this._inputEl.value;
-    }
-    //#endregion
 });
 
 const editableElementSelectInputTemplate = 
-`
-<form>
+`<form>
     <select></select>
     <span class="ee-clear-x">
         <div></div>
@@ -105,326 +113,234 @@ const editableElementSelectInputTemplate =
     </span>
 </form>`;
 customElements.define("editable-label-select-input", class extends HTMLElement {
+    //#region elements
+    get _elInput(){return this._root.querySelector('select')}
+    //#endregion
+
+    //#region methods to be implemented by all editable inputs
+    get value() {
+        return this._elInput.value;
+    }
+    set value(val) {
+        this._elInput.value = val;
+    }
+
+    set source(val){
+        //remove existing option elements
+        this._elInput.innerHTML = "";
+
+        val.map(item=>{
+            const template = document.createElement("TEMPLATE");
+            template.innerHTML = `<option value="${item.value}">${item.text}</option>`
+            this._elInput.appendChild(template.content);
+        })
+    }
+
+    displayValue = (val)=>{
+        const options = this._elInput.querySelectorAll(":scope > option");
+        for(let i = 0; i < options.length; i++) {
+            if (options[i].value == val) return options[i].textContent;
+        }
+        return '';
+    }
+
+    focus() {
+        this._elInput.focus();
+    }
+
+    _dispatchSubmitEvent = ()=>{
+        this.dispatchEvent(new CustomEvent("submit", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                value: this._elInput.value
+            }
+        }));
+    }
+
+    _dispatchCancelEvent = ()=>{
+        this.dispatchEvent(new CustomEvent("cancel", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                reason: "Escape key is pressed."
+            }
+        }));
+    }
+    //#endregion
+     
     connectedCallback() {
         // this.attachShadow({mode: 'open'});
         // this._root = this.shadowRoot;
         this._root = this;
 
+        //preserver text content for possible setting of value
+        const textContent = this.textContent;
+
         this._root.innerHTML = editableElementSelectInputTemplate;
 
-        //#region define reference to input element parts
-        this._inputEl = this._root.querySelector("select");
-        const form = this._root.querySelector("form");
-        //#endregion
+        //set value from either textcontent or data-value attribute (CANNOT USE value ACCESSOR, MUST GET VALUE BEFORE ALTERING ELEMENT)
+        this.value = this.hasAttribute('data-value') ? this.getAttribute('data-value') : null;
 
         //#region event handlers
-
-        //#region catch form submit event (indicates submit new value)
-        form.addEventListener("submit", (e)=>{
-            e.preventDefault();
-            this.dispatchEvent(new CustomEvent("submit", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    value: this._inputEl.value
-                }
-            }));
-        })
-        //#endregion
-
         //#region catch esc key as an alternative cancel
-        // this._inputEl.addEventListener("keyup", (e)=>{
-        //     if (e.key == "Escape" || e.key == "Esc") { // escape key
-        //             this.dispatchEvent(new CustomEvent("cancel", {
-        //                 bubbles: true,
-        //                 composed: true,
-        //                 detail: {
-        //                     reason: "Escape key is pressed."
-        //                 }
-        //             }));
-        //     }
-        // })
-        //#endregion
-
-       //#region clear event handler
-       // this._root.querySelector(".ee-clear-x").addEventListener("click", ()=>{
-       //     this._inputEl.value = "";
-       //     window.requestAnimationFrame(()=>this._inputEl.focus());
-       // });
-       //#endregion
-
-        //#endregion
-    }
-
-    //#region methods to be implemented by all editable inputs
-    /**
-     * Called when editable-label goes into edit mode
-     * @param {string} value 
-     */
-    activate(value) {
-        //set source
-        this._buildOptions(this.closest("editable-label").source);
-
-        this._inputEl.value = value;
-
-        window.requestAnimationFrame(()=>this._inputEl.focus());
-    }
-
-    focus() {
-        this._inputEl.focus();
-    }
-
-    get value() {
-        return this._inputEl.value;
-    }
-
-    set source(val) {
-        this._buildOptions(val);
-    }
-
-    //#endregion
-
-    _buildOptions(options) {
-        if (!Array.isArray(options)) {
-            console.error(`Expecting parameter to be an array`);
-            return;
-        }
-
-        this._inputEl.innerHTML = ''; //remove previous options
-
-        options.map(opt=>{
-            if (typeof opt !== "object") {
-                console.error(`Expecting parameter to be an array of objects`);
-                return;
+        this._elInput.addEventListener("keyup", (e)=>{
+            if (e.key == "Escape" || e.key == "Esc") { // escape key
+                this._dispatchCancelEvent();
             }
-
-            if (["value", "text"].every(prop=>{
-                if (!opt.hasOwnProperty(prop)) {
-                    console.error(`Property "${prop}" is not defined`);
-                    return false;
-                }
-                return true;
-            }) == false) return;
-
-            const option = document.createElement("OPTION");
-            option.textContent = opt.text;
-            option.value = opt.value;
-
-            this._inputEl.appendChild(option);
         })
+        //#endregion
+        //#endregion
     }
 });
 
 
 const editableElementTemplate = 
-`<a class="placeholder"></a>
-<busy-icon hidden></busy-icon>
-<span class="editor" hidden>
+`<a class="placeholder" tabindex="0"></a>
+<busy-icon></busy-icon>
+<span class="editor" style="display:flex;">
     <span class="editor-input"></span>
     <button type="button" class="btnSubmit">&check;</button>
     <button type="button" class="btnCancel">&cross;</button>
-    <div class="errmsgbox" hidden>errmsg</div>
+    <div class="errmsgbox" style="display:block;"></div>
 </span>`;
 customElements.define("editable-label", class extends HTMLElement {
-    //#region constructor
-    // constructor() {
-    //     super();
-    //     this._root;
-    // 
-    //     //NOTE: placeholder is defined early since it is used when setting this custom element's value
-    //     this._placeholder = document.createElement("A"); //DO NOT REDEFINE _placeholder
-    //     this._placeholder.classList.add("placeholder");
-    // 
-    //     //#region options holder
-    //     this._options = {};
-    //     //# endregion
-    // 
-    //     //#region define reference to html elements of this custom element
-    //     this._busyIcon;
-    //     this._controlWrapper;
-    //     this._errBlock;
-    //     //# endregion 
-    // }
-    //#endregion 
+    constructor() {
+        super();
+        this._elementdisplaylist = [];  //for _hide and _show methods
+    }
+
+    //#region elements
+    get _elPlaceholder(){return this._root.querySelector('.placeholder')}
+    get _elEditorWrapper(){return this._root.querySelector('.editor')}
+    get _elInputBox(){return this._root.querySelector('.editor-input')}
+    get _elInputElement(){return this._root.querySelector('.editor-input > *')}
+//     //         this._controlWrapper = wrapper.querySelector(".control-group");
+    get _elBusyIcon(){return this._root.querySelector("busy-icon")}
+    get _elErrMsgBox(){return this._root.querySelector(".errmsgbox")}
+//     //         this._errBlock = wrapper.querySelector(".ee-error-block");
+//     //         const inputContainer = wrapper.querySelector(".ee-inputcont");
+//     //         const btnContainer = wrapper.querySelector(".ee-buttons");
+    get _elCancelBtn(){return this._root.querySelector(".btnCancel")}
+    get _elSubmitBtn(){return this._root.querySelector(".btnSubmit")}
+    //#endregion
 
     //#region options
-
-    //#region ###
-    //get ajaxOptions(){}
-    //set ajaxOptions(val) {}
-
-    //get anim(){}
-    //set anim(val) {}
-
-    //get autotext(){}
-    //set autotext(val) {}
-
-    //get defaultValue(){}
-    //set defaultValue(val) {}
-
-    //     //#r egion disabled
-    //     get disabled() {
-    //         const value = this.getAttribute("data-disabled") ? this.getAttribute("data-disabled") : "false";
-    //         switch(value.trim().toUpperCase()) {
-    //             case "FALSE":
-    //             case "0":
-    //                 return false;
-    //             default:
-    //                 return true;
-    //         }
-    //     }
-    //     set disabled(val) {
-    //         let newValue = false;
-    //         switch(typeof val){
-    //             case "boolean":
-    //                 newValue = val;
-    //             break;
-    //             case "string":
-    //                 switch(val.trim().toUpperCase) {
-    //                     case "FALSE":
-    //                     case "0":
-    //                         newValue = false;
-    //                     break;
-    //                     default:
-    //                         newValue = true;
-    //                 }
-    //             break;
-    //             case "number":
-    //             case "bigint":
-    //                 newValue = val == 0 ? false : true;
-    //             break;
-    //             default:
-    //                 throw new Error(`Unexpected parameter type`);
-    //         }
-    // 
-    //         if (newValue) {
-    //             this._placeholder.classList.add("disabled");
-    //             this.setAttribute("data-disabled", "true");
-    //         }
-    //         else {
-    //             this._placeholder.classList.remove("disabled");
-    //             this.setAttribute("data-disabled", "false");
-    //         }
-    //     }
-    //     //#endr egion
-
-    //get display(){}
-    //set display(val) {}
-    //#endregion ###
-
-    //#region emptyclass
+//     /* 
+//     ajaxOptions
+//     anim
+//     autotext
+//     defaultValue
+//     disabled
+//     display
+//     */
     get emptyclass() {
         return this.hasAttribute("data-emptyclass") ? this.getAttribute("data-emptyclass") : 'editable-empty';
     }
     set emptyclass(val) {
         this.setAttribute("data-emptyclass", val);
     }
-    //#endregion
 
-    //#region emptytext
     get emptytext() {
         return this.hasAttribute("data-emptytext") ? this.getAttribute("data-emptytext") : 'Empty';
     }
     set emptytext(val) {
         this.setAttribute("data-emptytext", val);
     }
-    //#endregion
 
-    //#region ###
-    //get error(){}
-    //set error(val) {}
+//     /*
+//     error
+//     highlight
+//     mode
+//     */
 
-    //get highlight(){}
-    //set highlight(val) {}
-
-    //get mode(){}
-    //set mode(val) {}
-
-    //#region name
     get name() {
-        return this.getAttribute("data-name") ? this.getAttribute("data-name") : this.id;
+        return this.hasAttribute("data-name") ? this.getAttribute("data-name") : this.id;
     }
     set name(val) {
         this.setAttribute("data-name", val);
     }
-    //#endregion
 
-    //get onblur(){}
-    //set onblur(val) {}
+//     /*
+//     onblur
+//     */
 
-    //#region params
     get params() {
         return this._params ? this._params : null;
     }
     set params(val) {
         this._params = val;
     }
-    //#endregion
 
-    //#region pk
     get pk() {
-        return this.getAttribute("data-pk") ? this.getAttribute("data-pk") : null;
+        return this.hasAttribute("data-pk") ? this.getAttribute("data-pk") : null;
     }
     set pk(val) {
         this.setAttribute("data-pk", val);
     }
-    //#endregion
 
-    //get placement(){}
-    //set placement(val) {}
+//     /*
+//     placement
+//     savenochange
+//     selector
+//     send
+//     showbuttons
+//     */
 
-    //get savenochange(){}
-    //set savenochange(val) {}
-
-    //get selector(){}
-    //set selector(val) {}
-
-    //get send(){}
-    //set send(val) {}
-
-    //get showbuttons(){}
-    //set showbuttons(val) {}
-
-    //get success(){}
-    //set success(val) {}
-
-    //get toggle(){}
-    //set toggle(val) {}
-    //#endregion 
-    //#endregion ###
-
-    // property for select element type
-    get source() {
-        return this._source;
-    }
+    // get source() { // property for select element type
+    //     return this._source;
+    // }
     set source(val) {
-        this._source = val;
-        if (this._inputElement) this._inputElement.source = val;
+       this._source = val;
+        if (this._elInputElement) this._elInputElement.source = val;
+
+        //update displayed value
+        this.value = this.value;
     }
 
-    //#region ###
-    //#region type
+//     /*
+//     success
+//     toggle
+//     */
+
     get type() {
         return this.hasAttribute("data-type") ? this.getAttribute("data-type") : 'text';
     }
     set type(val) {
         this.setAttribute("data-type", val);
-    }
-    //#endregion
 
-    //#region ###
-    //get unsavedclass(){}
-    //set unsavedclass(val) {}
-    //#endregion
-    
-    //#region url
+        const tagname = (()=>{
+            switch (val){
+                case 'text':
+                    return "editable-label-text-input";
+                case 'select':
+                    return "editable-label-select-input";
+                default:
+                    return val;
+            }
+        })();
+
+        let dataValue = `data-value="${this.value}"`;
+        if (this.value === undefined || this.value === null) dataValue = '';
+        this._elInputBox.innerHTML = `<${tagname} ${dataValue}></${tagname}>`;
+
+        //#region register event listeners
+        this._elInputElement.addEventListener('submit', this._saveChanges);
+        this._elInputElement.addEventListener('cancel', this._cancelChanges);
+        this._elInputElement.addEventListener('input', ()=>this._errmsg = '');
+        //#endregion
+    }
+
+//     /*
+//     unsavedclass
+//     */
+
     get url() {
         return this.hasAttribute("data-url") ? this.getAttribute("data-url") : null;
     }
     set url(val) {
         this.setAttribute("data-url", val);
     }
-    //#endregion
 
     get validate(){
         return this._validate ? this._validate : ()=>{};
@@ -434,180 +350,187 @@ customElements.define("editable-label", class extends HTMLElement {
         else console.error(`Validate must be a function`);
     }
 
-    //#region value
     get value() {
-        return this._getValue();
+        return this.hasAttribute('data-value') ? this.getAttribute('data-value') : null;
     }
     set value(val) {
-        const newval = val.toString();
-        this.setAttribute("data-value", newval);
-        if (newval.trim().length > 0) {
-            this._placeholder.textContent = newval;
-            this._placeholder.classList.remove(this.emptyclass);
+        if (val === undefined || val === null) this.removeAttribute('data-value');
+        else this.setAttribute('data-value', val);
+
+        if (this._elInputElement) this._elPlaceholder.textContent = this._elInputElement.displayValue(val);
+        else this._elPlaceholder.textContent = val;
+
+        //emptytext 
+        if (this._elPlaceholder.textContent.trim() == '') {
+            this._elPlaceholder.textContent = this.emptytext;
+            this._elPlaceholder.classList.add(this.emptyclass);
         }
         else {
-            this._placeholder.textContent =  this.emptytext;
-            this._placeholder.classList.add(this.emptyclass);
+            this._elPlaceholder.classList.remove(this.emptyclass);
         }
     }
-    //#endregion
 
-    //#region ###
-    // FOR TEXT INPUT (TEXT)
-    // clear
-    // escape
-    // inputclass
-    // placeholder
-    // tpl
+    //#region additional options
+//     // FOR TEXT INPUT (TEXT)
+//     // clear
+//     // escape
+//     // inputclass
+//     // placeholder
+//     // tpl
 
-    // FOR TEXTAREA 
-    // escape
-    // inputclass
-    // placeholder
-    // rows
-    // tpl
+//     // FOR TEXTAREA 
+//     // escape
+//     // inputclass
+//     // placeholder
+//     // rows
+//     // tpl
 
-    // FOR SELECT
-    // escape
-    // inputclass
-    // prepend
-    // source
-    // sourceCache
-    // sourceError
-    // sourceOptions
-    // tpl
-    
-    // FOR DATE
-    // clear
-    // datepicker
-    // escape
-    // format
-    // inputclass
-    // tpl
-    // viewformat
+//     // FOR SELECT
+//     // escape
+//     // inputclass
+//     // prepend
+//     // sourceCache
+//     // sourceError
+//     // sourceOptions
+//     // tpl
 
-    // FOR DATETIME
-    // clear
-    // datetimepicker
-    // escape
-    // format
-    // inputclass
-    // tpl
-    // viewformat
-    //#endregion
+//     // FOR DATE
+//     // clear
+//     // datepicker
+//     // escape
+//     // format
+//     // inputclass
+//     // tpl
+//     // viewformat
 
-    //#region private options
-    set _errmsg(msg){
-        const errmsgbox = this._root.querySelector(".errmsgbox");
-        if (msg === undefined || msg === null || msg == '') {
-            errmsgbox.textContent = '';
-            this._hide(errmsgbox);
-            errmsgbox.style.display = "none";
-        }
-        else {
-            errmsgbox.textContent = msg;
-            this._show(errmsgbox);
-            errmsgbox.style.display = "block";
-        }
-    }
+//     // FOR DATETIME
+//     // clear
+//     // datetimepicker
+//     // escape
+//     // format
+//     // inputclass
+//     // tpl
+//     // viewformat
     //#endregion
     //#endregion options
 
-    //#region elements
-    get _placeholder(){return this._root.querySelector('.placeholder')}
-    get _editorWrapper(){return this._root.querySelector('.editor')}
-    get _inputBox(){return this._root.querySelector('.editor-input')}
-    get _inputElement(){return this._root.querySelector('.editor-input > *')}
-    //         this._controlWrapper = wrapper.querySelector(".control-group");
-    get _busyIcon(){return this._root.querySelector("busy-icon")}
-    // get _errMsgBox(){return this._root.querySelector(".errmsgbox")}
-    //         this._errBlock = wrapper.querySelector(".ee-error-block");
-    //         const inputContainer = wrapper.querySelector(".ee-inputcont");
-    //         const btnContainer = wrapper.querySelector(".ee-buttons");
+    //#region private options
+    set _errmsg(msg){
+        if (msg === undefined || msg === null || msg == '') {
+            this._elErrMsgBox.textContent = '';
+            this._hide(this._elErrMsgBox);
+            // this._elErrMsgBox.style.display = "none";
+        }
+        else {
+            this._elErrMsgBox.textContent = msg;
+            this._show(this._elErrMsgBox);
+            // this._elErrMsgBox.style.display = "block";
+        }
+    }
     //#endregion
 
     //#region methods
     _hide = (element)=>{
-        element.setAttribute("hidden", "hidden");
+        //#region save element's current style display setting to be used for when restoring display
+        if (element.style.display != 'none') {
+            const found = this._elementdisplaylist.find(item=>item.element === element);
+            if (found) {
+                found.display = element.style.display;
+            }
+            else {
+                const item = {
+                    element: element,
+                    display: element.style.display
+                }
+                this._elementdisplaylist.push(item);
+            }
+        }
+        //#endregion
+
+        element.style.display = 'none';
     }
     _show = (element)=>{
-        element.removeAttribute("hidden");
-    }
-
-    _getValue = ()=>this.hasAttribute("data-value") ? this.getAttribute("data-value") : this.textContent;
-
-    _startEditing = ()=>{
-//             if (this.disabled) return;
-// 
-        this._switchMode('edit')
-
-        //#region initialize and append editable input element
-        this._inputBox.innerHTML = '';
-        this._errmsg = null;
-
-        const editableInputElementTag = (()=>{
-            switch (this.type){
-                case 'text':
-                    return "editable-label-text-input";
-                case 'select':
-                    return "editable-label-select-input";
-                default:
-                    return this.type;
-            }
-        })();
-        this._inputBox.append(document.createElement(editableInputElementTag));
-        //#endregion
-
-        this._inputElement.activate(this.value);
-
-        this._inputElement.addEventListener("submit", this._saveNewValue);
-        this._inputElement.addEventListener("cancel", ()=>this._switchMode('no-edit'));
-
-        //#region clicked outside of ee-element -> remove editable controls and restore to non-edit mode
-        window.requestAnimationFrame(()=>{
-            let windowClickListener;
-            (windowClickListener = () => {
-                window.addEventListener(
-                    "click",
-                    (e)=>{
-                        // if (this.inEditMode()) {
-                            if (this === e.target.closest("editable-label")) {
-                                windowClickListener();
-                            }
-                            else {
-                                this._switchMode('no-edit');
-                            }
-                        // }
-                    },
-                    {once: true}
-                );
-            })();
-        });
-        //#endregion
-    }
-
-    _switchMode = (mode)=>{
-        this._hide(this._placeholder);
-        this._hide(this._busyIcon);
-        this._hide(this._editorWrapper);
-        this._editorWrapper.style.display="none";
-
-        switch(mode){
-            case 'edit':
-                this._show(this._editorWrapper);
-                this._editorWrapper.style.display="flex";
-            break;
-            case 'no-edit':
-                this._show(this._placeholder);
-            break;
-            case 'busy':
-                this._show(this._busyIcon);
-            break;
+        const found = this._elementdisplaylist.find(item=>item.element === element);
+        if (found) {
+            if (found.display == '') element.style.removeProperty('display');
+            else element.style.display = found.display;
         }
     }
 
-    _saveNewValue = ()=>{
-//         const submit = (val)=>{
+//     _getValue = ()=>this.hasAttribute("data-value") ? this.getAttribute("data-value") : this.textContent;
+
+    _startEditing = ()=>{
+        this._switchMode('edit');
+        this._elInputElement.focus();
+//         //             if (this.disabled) return;
+//         // 
+//         this._switchMode('edit')
+
+        //#region initialize and append editable input element
+//         this._elInputBox.innerHTML = '';
+//         this._errmsg = null;
+
+//         const editableInputElementTag = (()=>{
+//             switch (this.type){
+//                 case 'text':
+//                     return "editable-label-text-input";
+//                 case 'select':
+//                     return "editable-label-select-input";
+//                 default:
+//                     return this.type;
+//             }
+//         })();
+//         this._elInputBox.append(document.createElement(editableInputElementTag));
+        //#endregion
+
+//         this._elInputElement.activate(this.value);
+
+//         this._elInputElement.addEventListener("submit", this._saveNewValue);
+//         this._elInputElement.addEventListener("cancel", ()=>this._switchMode('normal'));
+
+        //#region clicked outside of ee-element -> remove editable controls and restore to non-edit mode
+//         window.requestAnimationFrame(()=>{
+//             let windowClickListener;
+//             (windowClickListener = () => {
+//                 window.addEventListener(
+//                     "click",
+//                     (e)=>{
+//                         // if (this.inEditMode()) {
+//                             if (this === e.target.closest("editable-label")) {
+//                                 windowClickListener();
+//                             }
+//                             else {
+//                                 this._switchMode('normal');
+//                             }
+//                         // }
+//                     },
+//                     {once: true}
+//                 );
+//             })();
+//         });
+        //#endregion
+    }
+
+    _cancelChanges = ()=>{
+        this._switchMode('normal');
+    }
+
+    _saveChanges = ()=>{
+        // //#region validate
+        // if (!(()=>{
+        //     const res = (this.validate)(val);
+        //     if (typeof res == "string") {
+        //         this._errmsg = res;
+        //         return false;
+        //     }
+        //     return true;
+        // })()) return;
+        // //#endregion
+
+        // this.value = this._elInputElement.value;
+        // this._switchMode('normal');
+// //         const submit = (val)=>{
+
         //#region show busy icon and hide other controls
         new Promise(resolve=>{
             this._switchMode('busy');
@@ -617,100 +540,100 @@ customElements.define("editable-label", class extends HTMLElement {
         //#region validate new value
         .then(()=>{
             const validate = this.validate;
-            const result = validate(this._inputElement.value);
-            if (typeof result == "string") {
-                throw new Error(result);
+            const res = (this.validate)(this._elInputElement.value);
+            if (typeof res == "string") {
+                throw new Error(res);
             }
             else {
-                return (this._inputElement.value)
+                return (this._elInputElement.value)
             }
         })
         //#endregion
         //#region url is set -> build data and send to backend; otherwise build value for next step
         .then((newval) => {
-            //#region if url is set -> send a post request to url
-            if (this.url) {
-                //#region pk or name not set -> throw error
-                if (!this.pk || !this.name){
-                    throw new Error(`"pk" and "name" must also be set`);
-                }
-                //#endregion
+             //#region if url is set -> send a post request to url
+//             if (this.url) {
+                 //#region pk or name not set -> throw error
+//                 if (!this.pk || !this.name){
+//                     throw new Error(`"pk" and "name" must also be set`);
+//                 }
+                 //#endregion
 
-                //#region set formdata to send
-                const formData = (()=>{
-                    const formData = new FormData();
-                    
-                    //#region params is set -> adjust form data base on params value
-                    if (this.params) {
-                        const defdata = {pk:this.pk, name:this.name, value:newval};
-                        let d;
-                        try {
-                            switch(typeof this.params) {
-                                case "function":
-                                    d = this.params(defdata);
-                                break;
-                                case "object":
-                                    d = {...defdata, ...this.params};
-                                break;
-                                // case "string":
-                                //     d = {...defdata, ...JSON.parse(this.params)};
-                                // break;
-                                default:
-                                    throw new Error(`Unexpected param type`);
-                            }
-                            for (const key in d) {
-                                if (d.hasOwnProperty(key)) {
-                                    if (typeof d[key] == "object") {
-                                        for (const k in d[key]) {
-                                            formData.append(`${key}[${k}]`, `${d[key][k]}`);
-                                        }
-                                    }
-                                    else formData.append(key, d[key]);
-                                }
-                            }
-                        } catch (error) {
-                            console.error(error);
-                        }
-                    }
-                    //#endregion
-                    //#region else just use pk, name and value properties
-                    else {
-                        formData.append("pk", this.pk);
-                        formData.append("name", this.name);
-                        formData.append("value", newval);
-                    }
-                    //#endregion
-                    return formData;
-                })();
-                //#endregion
+                 //#region set formdata to send
+//                 const formData = (()=>{
+//                     const formData = new FormData();
 
-                //#region send data to backend
-                return fetch(this.url, {
-                    method: "POST",
-                    body: formData
-                })
-                .then(res => {
-                    if (res.ok) {
-                        return {newValue: newval, response: res};
-                    }
-                    else {
-                        return res.text()
-                        .then(text => {
-                            throw new Error(text);
-                        })
-                    }
-                })
-                // .catch(err=>{
-                //     throw err;
-                // })
-                //#endregion
-            }
-            //#endregion
-            //#region else -> just update value
-            else {
+                     //#region params is set -> adjust form data base on params value
+//                     if (this.params) {
+//                         const defdata = {pk:this.pk, name:this.name, value:newval};
+//                         let d;
+//                         try {
+//                             switch(typeof this.params) {
+//                                 case "function":
+//                                     d = this.params(defdata);
+//                                 break;
+//                                 case "object":
+//                                     d = {...defdata, ...this.params};
+//                                 break;
+//                                 // case "string":
+//                                 //     d = {...defdata, ...JSON.parse(this.params)};
+//                                 // break;
+//                                 default:
+//                                     throw new Error(`Unexpected param type`);
+//                             }
+//                             for (const key in d) {
+//                                 if (d.hasOwnProperty(key)) {
+//                                     if (typeof d[key] == "object") {
+//                                         for (const k in d[key]) {
+//                                             formData.append(`${key}[${k}]`, `${d[key][k]}`);
+//                                         }
+//                                     }
+//                                     else formData.append(key, d[key]);
+//                                 }
+//                             }
+//                         } catch (error) {
+//                             console.error(error);
+//                         }
+//                     }
+                     //#endregion
+                     //#region else just use pk, name and value properties
+//                     else {
+//                         formData.append("pk", this.pk);
+//                         formData.append("name", this.name);
+//                         formData.append("value", newval);
+//                     }
+                     //#endregion
+//                     return formData;
+//                 })();
+                 //#endregion
+
+                 //#region send data to backend
+//                 return fetch(this.url, {
+//                     method: "POST",
+//                     body: formData
+//                 })
+//                 .then(res => {
+//                     if (res.ok) {
+//                         return {newValue: newval, response: res};
+//                     }
+//                     else {
+//                         return res.text()
+//                         .then(text => {
+//                             throw new Error(text);
+//                         })
+//                     }
+//                 })
+//                 // .catch(err=>{
+//                 //     throw err;
+//                 // })
+                 //#endregion
+//             }
+             //#endregion
+             //#region else -> just update value
+//             else {
                 return {newValue: newval, response: undefined};
-            }
-            //#endregion
+//             }
+             //#endregion
         })
         //#endregion
         //#region save new value and dispatch "change" event
@@ -726,46 +649,68 @@ customElements.define("editable-label", class extends HTMLElement {
         //#endregion
         //#region restore view (remove edit controls)
         .then(() => {
-            this._switchMode('no-edit');
+            this._switchMode('normal');
         })
-        //#endregion
+         //#endregion
         //#region error handling
         .catch((err) => {
-            log(err)
+            log(err, err.message)
             this._errmsg = err.message;
-            this._switchMode('edit');
-            window.requestAnimationFrame(() => this._inputElement.focus());
+            this._switchMode('edit', false);
+            this._elInputElement.focus();
         })
         //#endregion
     }
 
-    //#endregion methods
-    
+    _switchMode = (mode, resetInputElementValue = true)=>{
+        this._hide(this._elPlaceholder);
+        this._hide(this._elBusyIcon);
+        this._hide(this._elEditorWrapper);
+
+        switch(mode){
+            case 'edit':
+                if (resetInputElementValue) this._elInputElement.value = this.value;
+                this._show(this._elEditorWrapper);
+            break;
+            case 'normal':
+                this._show(this._elPlaceholder);
+            break;
+            case 'busy':
+                this._show(this._busyIcon);
+            break;
+        }
+    }
+     //#endregion methods
+
     connectedCallback() {
         this._root = this;
         // this.attachShadow({mode: 'open'});
         // this._root = this.shadowRoot;
 
-        //get value from either textcontent or data-value attribute (CANNOT USE value ACCESSOR, MUST GET VALUE BEFORE ALTERING ELEMENT)
-        const value = this._getValue();
+        //preserver text content for possible setting of value
+        const textContent = this.textContent;
 
         this._root.innerHTML = editableElementTemplate;
 
-        ////:: set initial value
-        this.value = value;
-        //         if (this.disabled) {
-        //             this.disabled = this.disabled;
-        //         }
-        ////::end 
-                
-        ////:: event handlers
-        this._placeholder.addEventListener("click", this._startEditing);                      // placeholder clicked -> start editing mode
-        this._root.querySelector(".btnSubmit").addEventListener("click", this._saveNewValue); // check button clicked -> save new value
-        this._root.querySelector(".btnCancel").addEventListener("click", ()=>this._switchMode('no-edit'));   // cross button clicked -> end editing mode, discarding any changes
-        ////::end event handlers
+        //set value from either textcontent or data-value attribute (CANNOT USE value ACCESSOR, MUST GET VALUE BEFORE ALTERING ELEMENT)
+        this.value = this.hasAttribute('data-value') ? this.getAttribute('data-value') : textContent;
+
+        //initialize input element
+        this.type = this.hasAttribute('data-type') ? this.getAttribute('data-type') : 'text';
+
+        //hide errmsgbox
+        this._hide(this._elErrMsgBox);
+
+        this._switchMode('normal');
+
+        //#region event handlers
+        // this._elPlaceholder.addEventListener("click", this._startEditing);                      // placeholder clicked -> start editing mode
+        this._elPlaceholder.addEventListener("focus", this._startEditing);
+        this._elSubmitBtn.addEventListener("click", this._saveChanges);     // check button clicked -> save new value
+        this._elCancelBtn.addEventListener("click", this._cancelChanges);   // cross button clicked -> end editing mode, discarding any changes
+        this.addEventListener("focusin", ()=>clearTimeout(this._focusTimeoutId));
+        this.addEventListener("focusout", ()=>this._focusTimeoutId = setTimeout(this._cancelChanges, 200));
+        //#endregion end event handlers
     }   //connectedCallback end
-
-
 })
-
 })();

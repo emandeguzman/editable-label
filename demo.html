@@ -20,140 +20,249 @@
             padding: 5px 20px;
             background: #eee;
         }
+        section.collapsed {
+            height: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        section > div {
+            margin-bottom: 20px;
+        }
         code {
-            margin-top: 5px;
-            padding: 15px;
+            padding: 0;
             display: block;
             box-shadow: 1px 1px 2px 1px #ccc ;
         }
     </style>
 </head>
 <body>
-    <section data-name="Basic Usage">
-        <h3>Basic Usage</h3>
-        <editable-label>editable</editable-label>
-        <code>
-            &lt;editable-label&gt;editable&lt;/editable-label&gt;
-        </code>
-    </section>
-
-
-    <section data-name="Empty">
-        <h3>Empty</h3>
-        <div class="sample">
-            <editable-label></editable-label>
-        </div>
-        <code>
-            &lt;editable-label&gt;&lt;/editable-label&gt;
-        </code>
-
-    </section>
-
-
-    <section data-name="Save to Backend">
-        <h3>Save to Backend</h3>
-        <editable-label id="name" data-pk="1" data-url="./backend.json">editable</editable-label>
-        <code>
-            &lt;editable-label id="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
-        </code>
-    </section>
-
-
-    <section data-name="With params">
-        <h3>With params</h3>
-
-        <div>
-            <h4>Using object</h4>
-
-            <editable-label id="with-object-params" data-name="name" data-pk="1" data-url="./backend.json">editable</editable-label>
-            <script>
-                domready(()=>{
-                    document.querySelector("editable-label#with-object-params").params={param1: "param1val", param2: "param2val"};
-                })
-            </script>
-            <code>
-<pre>
-&lt;editable-label id="with-object-params" data-name="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
-&lt;script&gt;
-    domready(()=&gt;{
-        document.querySelector("editable-label#with-object-params").params={param1: "param1val", param2: "param2val"};
-    })
-&lt;/script&gt;
-</pre>
-            </code>
+    <!-- #region basic -->
+    <a onclick="toggleCollapse();"><h3>Basic</h3></a>
+    <section class="collapsed">
+        <div class="text">
+            <div class="demo">
+                <editable-label>click to edit</editable-label>
+            </div>
+            <code><pre></pre></code>
         </div>
 
-        <div>
-            <h4>Using function</h4>
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select" data-value="opt2"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
 
-            <editable-label id="with-function-params" data-name="name" data-pk="1" data-url="./backend.json">editable</editable-label>
-            <script>
-                domready(()=>{
-                    document.querySelector("editable-label#with-function-params").params = function(params){
-                        return {
-                            pk: params.pk,
-                            name: 'new name',
-                            value: params.value,
-                            param1: 'new param val',
-                        }
-                    };
-                })
-            </script>
-            <code>
-                <pre>
-&lt;editable-label id="with-function-params" data-name="name" data-pk="1" data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
-&lt;script&gt;
-    domready(()=&gt;{
-        document.querySelector("editable-label#with-function-params").params = function(params){
-            return {
-                pk: params.pk,
-                name: 'new name',
-                value: params.value,
-                param1: 'new param val',
-            }
-        };
-    })
-&lt;/script&gt;
-                </pre>
-            </code>
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
+                            editable.value = 'opt2';
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
         </div>
 
     </section>
+    <!-- #endregion -->
 
+    <!-- #region empty text -->
+    <a onclick="toggleCollapse();"><h3>emptytext & emptyclass</h3></a>
+    <section class="collapsed">
+        <div class="text">
+            <div class="demo">
+                <editable-label></editable-label>
+            </div>
+            <code><pre></pre></code>
+        </div>
 
-    <section data-name="Shows error">
-        <h3>Shows error</h3>
-        <editable-label data-url="./backend.json">editable</editable-label>
-        <code>
-            &lt;editable-label data-url="./backend.json"&gt;editable&lt;/editable-label&gt;
-        </code>
+        <div class="text">
+            <div class="demo">
+                <editable-label data-emptytext="no-value" data-emptyclass="no-value-class"></editable-label>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ]
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select" data-emptytext="no-value" data-emptyclass="no-value-class"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ]
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
     </section>
+    <!-- #endregion -->
 
+    <!-- #region validation -->
+    <a onclick="toggleCollapse();"><h3>Validation</h3></a>
+    <section class="collapsed">
+        <div class="text">
+            <div class="demo">
+                <editable-label>click to edit</editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.validate = (value)=>{
+                                if (!/^\d+$/.test(value)) {
+                                    return 'this field must be numeric';
+                                }
+                            }
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
 
-    <section data-name="With validate">
-        <h3>With validate</h3>
-        <editable-label id="with-validate">editable</editable-label>
-        <script>
-            domready(()=>{
-                document.querySelector("editable-label#with-validate").validate = (value)=>{
-                    if (value !== "correct value") return `Value must be "correct value"`;
-                }
-            })
-        </script>
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
 
-        <code>
-<pre>
-&lt;editable-label id="with-validate"&gt;editable&lt;/editable-label&gt;
-&lt;script&gt;
-    domready(()=&gt;{
-        document.querySelector("editable-label#with-validate").validate = (value)=&gt;{
-            if (value !== "correct value") return `Value must be "correct value"`;
+                            editable.validate = (value)=>{
+                                if (value == '') return 'a valid option must be selected'
+                            }
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+    </section>
+    <!-- #endregion -->
+
+    <!-- #region backend -->
+    <a onclick="toggleCollapse();"><h3>AJAX</h3></a>
+    <section class="_collapsed">
+        <div class="text">
+            <div class="demo">
+                <editable-label data>click to edit</editable-label>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select" data-value="opt2"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
+                            editable.value = 'opt2';
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+    </section>
+    <!-- #endregion -->
+
+    <script>
+        document.querySelectorAll(".demo").forEach(demo=>{
+                demo.parentElement.querySelector("pre").textContent = demo.innerHTML;
+            });
+
+        function toggleCollapse(){
+            event.currentTarget.nextElementSibling.classList.toggle("collapsed");
         }
-    })
-&lt;/script&gt;
-</pre>
-        </code>
-    </section>
+    </script>
 
     <script src="./editable-label.js"></script>
 </body>
