@@ -205,14 +205,14 @@
     <section class="_collapsed">
         <div class="text">
             <div class="demo">
-                <editable-label data>click to edit</editable-label>
+                <editable-label data-url="demo-backend.php" data-pk="12" data-name="fieldname">click to edit</editable-label>
             </div>
             <code><pre></pre></code>
         </div>
 
         <div class="select">
             <div class="demo">
-                <editable-label data-type="select" data-value="opt2"></editable-label>
+                <editable-label data-type="select" data-url="demo-backend.php" data-pk="2" data-name="fname"></editable-label>
                 <script>
                     (()=>{
                         const editable = document.currentScript.closest(".demo").querySelector("editable-label");
@@ -223,27 +223,6 @@
                                 {value:"opt3", text: "option3"},
                                 {value:"opt4", text: "option4"},
                             ];
-                        });
-                    })();
-                </script>
-            </div>
-            <code><pre></pre></code>
-        </div>
-
-        <div class="select">
-            <div class="demo">
-                <editable-label data-type="select"></editable-label>
-                <script>
-                    (()=>{
-                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
-                        domready(()=>{
-                            editable.source = [
-                                {value:"opt1", text: "option1"},
-                                {value:"opt2", text: "option2"},
-                                {value:"opt3", text: "option3"},
-                                {value:"opt4", text: "option4"},
-                            ];
-                            editable.value = 'opt2';
                         });
                     })();
                 </script>

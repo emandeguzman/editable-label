@@ -12,17 +12,17 @@ function log() {
 
 // //<link rel="stylesheet" href="${dirurl()}/editable_element_text.min.css">
 const editableElementTextInputTemplate = 
-`<form>
+`<span>
     <input type="text" value="">
     <span class="ee-clear-x">
         <div></div>
         <div></div>
     </span>
-</form>`;
+</span>`;
 customElements.define("editable-label-text-input", class extends HTMLElement {
     //#region elements
     get _elInput(){return this._root.querySelector('input')}
-    get _elForm(){return this._root.querySelector('form')}
+    // get _elForm(){return this._root.querySelector('form')}
     get _elClearBtn(){return this._root.querySelector('.ee-clear-x')}
     //#endregion
 
@@ -61,7 +61,6 @@ customElements.define("editable-label-text-input", class extends HTMLElement {
             }
         }));
     }
-
     // _dispatchInputEvent = (event)=>{
     //     this.dispatchEvent(event);
     // } 
@@ -82,15 +81,18 @@ customElements.define("editable-label-text-input", class extends HTMLElement {
 
         //#region event handlers
         //#region catch form submit event (indicates submit new value)
-        this._elForm.addEventListener("submit", (e)=>{
-            e.preventDefault();
-            this._dispatchSubmitEvent();
-        })
+        // this._elForm.addEventListener("submit", (e)=>{
+        //     e.preventDefault();
+        //     this._dispatchSubmitEvent();
+        // })
         //#endregion
         //#region catch esc key as an alternative cancel
         this._elInput.addEventListener("keyup", (e)=>{
             if (e.key == "Escape" || e.key == "Esc") { // escape key
                 this._dispatchCancelEvent();
+            }
+            else if (e.key == "Enter" || e.key == "Return") {
+                this._dispatchSubmitEvent();
             }
         })
         //#endregion
@@ -148,15 +150,15 @@ customElements.define("editable-label-select-input", class extends HTMLElement {
         this._elInput.focus();
     }
 
-    _dispatchSubmitEvent = ()=>{
-        this.dispatchEvent(new CustomEvent("submit", {
-            bubbles: true,
-            composed: true,
-            detail: {
-                value: this._elInput.value
-            }
-        }));
-    }
+    // _dispatchSubmitEvent = ()=>{
+    //     this.dispatchEvent(new CustomEvent("submit", {
+    //         bubbles: true,
+    //         composed: true,
+    //         detail: {
+    //             value: this._elInput.value
+    //         }
+    //     }));
+    // }
 
     _dispatchCancelEvent = ()=>{
         this.dispatchEvent(new CustomEvent("cancel", {
@@ -455,11 +457,15 @@ customElements.define("editable-label", class extends HTMLElement {
             if (found.display == '') element.style.removeProperty('display');
             else element.style.display = found.display;
         }
+        else {
+            element.style.removeProperty('display');
+        }
     }
 
 //     _getValue = ()=>this.hasAttribute("data-value") ? this.getAttribute("data-value") : this.textContent;
 
     _startEditing = ()=>{
+        this._errmsg = '';
         this._switchMode('edit');
         this._elInputElement.focus();
 //         //             if (this.disabled) return;
@@ -512,157 +518,128 @@ customElements.define("editable-label", class extends HTMLElement {
     }
 
     _cancelChanges = ()=>{
-        this._switchMode('normal');
+        if (this._mode != "busy") this._switchMode('normal');
     }
 
-    _saveChanges = ()=>{
-        // //#region validate
-        // if (!(()=>{
-        //     const res = (this.validate)(val);
-        //     if (typeof res == "string") {
-        //         this._errmsg = res;
-        //         return false;
-        //     }
-        //     return true;
-        // })()) return;
-        // //#endregion
-
-        // this.value = this._elInputElement.value;
-        // this._switchMode('normal');
-// //         const submit = (val)=>{
-
-        //#region show busy icon and hide other controls
-        new Promise(resolve=>{
+    _saveChanges = async ()=>{
+        try {
+            log('save')
             this._switchMode('busy');
-            resolve();
-        })
-        //#endregion
-        //#region validate new value
-        .then(()=>{
-            const validate = this.validate;
+
+            let newval = this._elInputElement.value;
+
+            //#region validate new value
             const res = (this.validate)(this._elInputElement.value);
             if (typeof res == "string") {
                 throw new Error(res);
             }
-            else {
-                return (this._elInputElement.value)
+            //#endregion
+
+            //#region if url is set -> send a post request to url
+            if (this.url) {
+                //#region pk or name not set -> throw error
+                if (!this.pk || !this.name){
+                    throw new Error(`Undefined name and primary key (pk)`);
+                }
+                //#endregion
+
+                //#region set formdata to send
+                const formData = (()=>{
+                    const formData = new FormData();
+
+                    //#region params is set -> adjust form data base on params value
+                    // if (this.params) {
+                    //     const defdata = {pk:this.pk, name:this.name, value:newval};
+                    //     let d;
+                    //     try {
+                    //         switch(typeof this.params) {
+                    //             case "function":
+                    //                 d = this.params(defdata);
+                    //             break;
+                    //             case "object":
+                    //                 d = {...defdata, ...this.params};
+                    //             break;
+                    //             // case "string":
+                    //             //     d = {...defdata, ...JSON.parse(this.params)};
+                    //             // break;
+                    //             default:
+                    //                 throw new Error(`Unexpected param type`);
+                    //         }
+                    //         for (const key in d) {
+                    //             if (d.hasOwnProperty(key)) {
+                    //                 if (typeof d[key] == "object") {
+                    //                     for (const k in d[key]) {
+                    //                         formData.append(`${key}[${k}]`, `${d[key][k]}`);
+                    //                     }
+                    //                 }
+                    //                 else formData.append(key, d[key]);
+                    //             }
+                    //         }
+                    //     } catch (error) {
+                    //         console.error(error);
+                    //     }
+                    // }
+                    //#endregion
+                    //#region else just use pk, name and value properties
+                    // else {
+                        formData.append("pk", this.pk);
+                        formData.append("name", this.name);
+                        formData.append("value", newval);
+                    // }
+                    //#endregion
+                    return formData;
+                })();
+                //#endregion
+
+                //#region send data to backend
+                const res = await fetch(this.url, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (res.ok) {
+                    // return {newValue: newval, response: res};
+                }
+                else {
+                    const resmsg = await res.text();
+                    throw new Error(resmsg);
+                }
+                //#endregion
             }
-        })
-        //#endregion
-        //#region url is set -> build data and send to backend; otherwise build value for next step
-        .then((newval) => {
-             //#region if url is set -> send a post request to url
-//             if (this.url) {
-                 //#region pk or name not set -> throw error
-//                 if (!this.pk || !this.name){
-//                     throw new Error(`"pk" and "name" must also be set`);
-//                 }
-                 //#endregion
+            //#endregion
 
-                 //#region set formdata to send
-//                 const formData = (()=>{
-//                     const formData = new FormData();
+            //#region update value
+            this.value = newval;
+            //#endregion
 
-                     //#region params is set -> adjust form data base on params value
-//                     if (this.params) {
-//                         const defdata = {pk:this.pk, name:this.name, value:newval};
-//                         let d;
-//                         try {
-//                             switch(typeof this.params) {
-//                                 case "function":
-//                                     d = this.params(defdata);
-//                                 break;
-//                                 case "object":
-//                                     d = {...defdata, ...this.params};
-//                                 break;
-//                                 // case "string":
-//                                 //     d = {...defdata, ...JSON.parse(this.params)};
-//                                 // break;
-//                                 default:
-//                                     throw new Error(`Unexpected param type`);
-//                             }
-//                             for (const key in d) {
-//                                 if (d.hasOwnProperty(key)) {
-//                                     if (typeof d[key] == "object") {
-//                                         for (const k in d[key]) {
-//                                             formData.append(`${key}[${k}]`, `${d[key][k]}`);
-//                                         }
-//                                     }
-//                                     else formData.append(key, d[key]);
-//                                 }
-//                             }
-//                         } catch (error) {
-//                             console.error(error);
-//                         }
-//                     }
-                     //#endregion
-                     //#region else just use pk, name and value properties
-//                     else {
-//                         formData.append("pk", this.pk);
-//                         formData.append("name", this.name);
-//                         formData.append("value", newval);
-//                     }
-                     //#endregion
-//                     return formData;
-//                 })();
-                 //#endregion
-
-                 //#region send data to backend
-//                 return fetch(this.url, {
-//                     method: "POST",
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (res.ok) {
-//                         return {newValue: newval, response: res};
-//                     }
-//                     else {
-//                         return res.text()
-//                         .then(text => {
-//                             throw new Error(text);
-//                         })
-//                     }
-//                 })
-//                 // .catch(err=>{
-//                 //     throw err;
-//                 // })
-                 //#endregion
-//             }
-             //#endregion
-             //#region else -> just update value
-//             else {
-                return {newValue: newval, response: undefined};
-//             }
-             //#endregion
-        })
-        //#endregion
-        //#region save new value and dispatch "change" event
-        .then((changes)=>{
-            this.value = changes.newValue;
-            // this.dispatchEvent(new CustomEvent("save", {
+            //#region dispatch "change" event
             this.dispatchEvent(new CustomEvent("change", {
                 bubbles: true,
                 composed: true,
-                detail: changes
+                detail: {
+                    newValue: newval
+                }
             }));
-        })
-        //#endregion
-        //#region restore view (remove edit controls)
-        .then(() => {
+            //#endregion
+
+            //#region restore view (remove edit controls)
             this._switchMode('normal');
-        })
-         //#endregion
-        //#region error handling
-        .catch((err) => {
-            log(err, err.message)
-            this._errmsg = err.message;
-            this._switchMode('edit', false);
-            this._elInputElement.focus();
-        })
-        //#endregion
+            //#endregion
+        }
+        catch (err) {
+            //#region error handling
+            // .catch((err) => {
+                log(err, err.message)
+                this._errmsg = err.message;
+                this._switchMode('edit', false);
+                this._elInputElement.focus();
+            // })
+            //#endregion
+        }
     }
 
     _switchMode = (mode, resetInputElementValue = true)=>{
+        this._mode = mode;
         this._hide(this._elPlaceholder);
         this._hide(this._elBusyIcon);
         this._hide(this._elEditorWrapper);
@@ -676,7 +653,7 @@ customElements.define("editable-label", class extends HTMLElement {
                 this._show(this._elPlaceholder);
             break;
             case 'busy':
-                this._show(this._busyIcon);
+                this._show(this._elBusyIcon);
             break;
         }
     }
