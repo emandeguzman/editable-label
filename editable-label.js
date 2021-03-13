@@ -523,7 +523,6 @@ customElements.define("editable-label", class extends HTMLElement {
 
     _saveChanges = async ()=>{
         try {
-            log('save')
             this._switchMode('busy');
 
             let newval = this._elInputElement.value;
@@ -548,44 +547,44 @@ customElements.define("editable-label", class extends HTMLElement {
                     const formData = new FormData();
 
                     //#region params is set -> adjust form data base on params value
-                    // if (this.params) {
-                    //     const defdata = {pk:this.pk, name:this.name, value:newval};
-                    //     let d;
-                    //     try {
-                    //         switch(typeof this.params) {
-                    //             case "function":
-                    //                 d = this.params(defdata);
-                    //             break;
-                    //             case "object":
-                    //                 d = {...defdata, ...this.params};
-                    //             break;
-                    //             // case "string":
-                    //             //     d = {...defdata, ...JSON.parse(this.params)};
-                    //             // break;
-                    //             default:
-                    //                 throw new Error(`Unexpected param type`);
-                    //         }
-                    //         for (const key in d) {
-                    //             if (d.hasOwnProperty(key)) {
-                    //                 if (typeof d[key] == "object") {
-                    //                     for (const k in d[key]) {
-                    //                         formData.append(`${key}[${k}]`, `${d[key][k]}`);
-                    //                     }
-                    //                 }
-                    //                 else formData.append(key, d[key]);
-                    //             }
-                    //         }
-                    //     } catch (error) {
-                    //         console.error(error);
-                    //     }
-                    // }
+                    if (this.params) {
+                        const defdata = {pk:this.pk, name:this.name, value:newval};
+                        let d;
+                        // try {
+                            switch(typeof this.params) {
+                                case "function":
+                                    d = this.params(defdata);
+                                break;
+                                case "object":
+                                    d = {...defdata, ...this.params};
+                                break;
+                                // case "string":
+                                //     d = {...defdata, ...JSON.parse(this.params)};
+                                // break;
+                                default:
+                                    throw new Error(`Unexpected "params" type`);
+                            }
+                            for (const key in d) {
+                                if (d.hasOwnProperty(key)) {
+                                    if (typeof d[key] == "object") {
+                                        for (const k in d[key]) {
+                                            formData.append(`${key}[${k}]`, `${d[key][k]}`);
+                                        }
+                                    }
+                                    else formData.append(key, d[key]);
+                                }
+                            }
+                        // } catch (error) {
+                        //     console.error(error);
+                        // }
+                    }
                     //#endregion
                     //#region else just use pk, name and value properties
-                    // else {
+                    else {
                         formData.append("pk", this.pk);
                         formData.append("name", this.name);
                         formData.append("value", newval);
-                    // }
+                    }
                     //#endregion
                     return formData;
                 })();

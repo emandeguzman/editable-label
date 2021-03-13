@@ -202,7 +202,7 @@
 
     <!-- #region backend -->
     <a onclick="toggleCollapse();"><h3>AJAX</h3></a>
-    <section class="_collapsed">
+    <section class="collapsed">
         <div class="text">
             <div class="demo">
                 <editable-label data-url="demo-backend.php" data-pk="12" data-name="fieldname">click to edit</editable-label>
@@ -223,6 +223,65 @@
                                 {value:"opt3", text: "option3"},
                                 {value:"opt4", text: "option4"},
                             ];
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+    </section>
+    <!-- #endregion -->
+
+    <!-- #region with param -->
+    <a onclick="toggleCollapse();"><h3>AJAX with Param</h3></a>
+    <section class="_collapsed">
+        <div class="text">
+            <div class="demo">
+                <editable-label data-url="demo-backend.php" data-pk="12" data-name="fieldname">click to edit</editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.params = {rider1: "additional parameter", rider2: "another one"}
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="text">
+            <div class="demo">
+                <editable-label data-url="demo-backend.php" data-pk="12" data-name="fieldname">click to edit</editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.params = (params)=>{
+                                return {pk:10, name:"new_name", value:"new value", additional:"additional param"}
+                            }
+                        });
+                    })();
+                </script>
+            </div>
+            <code><pre></pre></code>
+        </div>
+
+        <div class="select">
+            <div class="demo">
+                <editable-label data-type="select" data-url="demo-backend.php" data-pk="2" data-name="fname"></editable-label>
+                <script>
+                    (()=>{
+                        const editable = document.currentScript.closest(".demo").querySelector("editable-label");
+                        domready(()=>{
+                            editable.source = [
+                                {value:"opt1", text: "option1"},
+                                {value:"opt2", text: "option2"},
+                                {value:"opt3", text: "option3"},
+                                {value:"opt4", text: "option4"},
+                            ];
+                            editable.params = {rider1: "additional parameter", rider2: "another one"}
                         });
                     })();
                 </script>
