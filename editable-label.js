@@ -250,8 +250,15 @@ customElements.define("editable-label", class extends HTMLElement {
         this.setAttribute("data-emptytext", val);
     }
 
+    get error() {
+        return this.__error ? this.__error : ()=>{};
+    }
+    set error(val) {
+        if (typeof val == "function") this.__error = val;
+        else console.error(`Error value must be a function`);
+    }
+
 //     /*
-//     error
 //     highlight
 //     mode
 //     */
@@ -300,8 +307,14 @@ customElements.define("editable-label", class extends HTMLElement {
         this.value = this.value;
     }
 
+    get success() {
+        return this.__success ? this.__success : ()=>{};
+    }
+    set success(val) {
+        if (typeof val == "function") this.__success = val;
+        else console.error(`Success value must be a function`);
+    }
 //     /*
-//     success
 //     toggle
 //     */
 
@@ -522,10 +535,11 @@ customElements.define("editable-label", class extends HTMLElement {
     }
 
     _saveChanges = async ()=>{
+        const oldval = this.value;
+        let newval = this._elInputElement.value;
+
         try {
             this._switchMode('busy');
-
-            let newval = this._elInputElement.value;
 
             //#region validate new value
             const res = (this.validate)(this._elInputElement.value);
@@ -598,6 +612,8 @@ customElements.define("editable-label", class extends HTMLElement {
 
                 if (res.ok) {
                     // return {newValue: newval, response: res};
+                    const jsonres = await res.json();
+                    (this.success)(jsonres, newval);
                 }
                 else {
                     const resmsg = await res.text();
@@ -611,11 +627,12 @@ customElements.define("editable-label", class extends HTMLElement {
             this.value = newval;
             //#endregion
 
-            //#region dispatch "change" event
-            this.dispatchEvent(new CustomEvent("change", {
+            //#region dispatch "valuechange" event
+            this.dispatchEvent(new CustomEvent("valuechange", {
                 bubbles: true,
                 composed: true,
                 detail: {
+                    oldValue: oldval,
                     newValue: newval
                 }
             }));
@@ -627,12 +644,11 @@ customElements.define("editable-label", class extends HTMLElement {
         }
         catch (err) {
             //#region error handling
-            // .catch((err) => {
-                log(err, err.message)
-                this._errmsg = err.message;
-                this._switchMode('edit', false);
-                this._elInputElement.focus();
-            // })
+            log(err, err.message)
+            (this.error)(err.message, newval);
+            this._errmsg = err.message;
+            this._switchMode('edit', false);
+            this._elInputElement.focus();
             //#endregion
         }
     }
