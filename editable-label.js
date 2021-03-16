@@ -14,16 +14,16 @@ function log() {
 const editableElementTextInputTemplate = 
 `<span>
     <input type="text" value="">
-    <span class="ee-clear-x">
-        <div></div>
-        <div></div>
+    <span class="clear-x">
+        <span></span>
+        <span></span>
     </span>
 </span>`;
 customElements.define("editable-label-text-input", class extends HTMLElement {
     //#region elements
     get _elInput(){return this._root.querySelector('input')}
     // get _elForm(){return this._root.querySelector('form')}
-    get _elClearBtn(){return this._root.querySelector('.ee-clear-x')}
+    get _elClearBtn(){return this._root.querySelector('.clear-x')}
     //#endregion
 
     //#region methods to be implemented by all editable inputs
@@ -107,13 +107,9 @@ customElements.define("editable-label-text-input", class extends HTMLElement {
 });
 
 const editableElementSelectInputTemplate = 
-`<form>
+`<span>
     <select></select>
-    <span class="ee-clear-x">
-        <div></div>
-        <div></div>
-    </span>
-</form>`;
+</span>`;
 customElements.define("editable-label-select-input", class extends HTMLElement {
     //#region elements
     get _elInput(){return this._root.querySelector('select')}

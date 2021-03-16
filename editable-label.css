@@ -1,145 +1,109 @@
-editable-label-text-input form {
-  position: relative;
-  min-height: 100%;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+editable-label {
+    width: 100%;
 }
-
-editable-label-text-input input {
-  -ms-flex-item-align: stretch;
-      -ms-grid-row-align: stretch;
-      align-self: stretch;
-  font-size: 1em;
-  padding: 5px 1.2em 5px 5px;
-}
-
-editable-label-text-input .ee-clear-x {
-  position: absolute;
-  top: 50%;
-  right: 3px;
-  -webkit-transform: translateY(-50%);
-          transform: translateY(-50%);
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  background: #ccc;
-  cursor: pointer;
-}
-
-editable-label-text-input .ee-clear-x div {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 55%;
-  height: 3px;
-  background-color: #fff;
-}
-
-editable-label-text-input .ee-clear-x div:nth-child(1) {
-  -webkit-transform: translate(-50%, -50%) rotate(45deg);
-          transform: translate(-50%, -50%) rotate(45deg);
-}
-
-editable-label-text-input .ee-clear-x div:nth-child(2) {
-  -webkit-transform: translate(-50%, -50%) rotate(-45deg);
-          transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-editable-label-text-input form {
-  position: relative;
-  min-height: 100%;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-editable-label-text-input input {
-  -ms-flex-item-align: stretch;
-      -ms-grid-row-align: stretch;
-      align-self: stretch;
-  font-size: 1em;
-  padding: 5px 1.2em 5px 5px;
-}
-
-editable-label-text-input .ee-clear-x {
-  position: absolute;
-  top: 50%;
-  right: 3px;
-  -webkit-transform: translateY(-50%);
-          transform: translateY(-50%);
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  background: #ccc;
-  cursor: pointer;
-}
-
-editable-label-text-input .ee-clear-x div {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 55%;
-  height: 3px;
-  background-color: #fff;
-}
-
-editable-label-text-input .ee-clear-x div:nth-child(1) {
-  -webkit-transform: translate(-50%, -50%) rotate(45deg);
-          transform: translate(-50%, -50%) rotate(45deg);
-}
-
-editable-label-text-input .ee-clear-x div:nth-child(2) {
-  -webkit-transform: translate(-50%, -50%) rotate(-45deg);
-          transform: translate(-50%, -50%) rotate(-45deg);
-}
-
 editable-label .placeholder {
-  border-bottom: dashed 1px #0088cc;
-  color: #005194;
-  cursor: pointer;
+    border-bottom: dashed 1px #0088cc;
+    color: #005194;
+    cursor: pointer;
 }
-
 editable-label .placeholder.editable-empty {
-  font-style: italic;
-  color: #DD1144;
+    font-style: italic;
+    color: #DD1144;
 }
-
 editable-label .placeholder.disabled {
-  border-bottom: 0;
-  color: var(--editable-element-disabled-color, #005194);
+    border-bottom: 0;
+    color: var(--editable-element-disabled-color, #005194);
 }
-
 editable-label .editor {
-  position: relative;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    white-space: nowrap;
 }
-
+editable-label .editor-input {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: stretch;
+}
+editable-label .editor > button {
+    flex: 0 0 auto;
+    font-size: 1em;
+}
 editable-label .errmsgbox {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  border-radius: 3px;
-  padding: .3em;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  color: #fff;
-  background: #ff5555;
-  white-space: nowrap;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    border-radius: 3px;
+    padding: 0.3em;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    background: #ff5555;
+    white-space: nowrap;
 }
-
 editable-label .errmsgbox::after {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 7px;
-  width: 7px;
-  height: 7px;
-  -webkit-transform: rotate(45deg);
-          transform: rotate(45deg);
-  background: #ff5555;
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 7px;
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    background: #ff5555;
 }
-/*# sourceMappingURL=editable-label.css.map */
+editable-label-text-input {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+}
+editable-label-text-input > * {
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+}
+editable-label-text-input input {
+    width: 100%;
+    font-size: 1em;
+    padding: 5px 1.2em 5px 5px;
+}
+editable-label-text-input .clear-x {
+    position: absolute;
+    top: 50%;
+    right: 3px;
+    transform: translateY(-50%);
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+}
+editable-label-text-input .clear-x span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 55%;
+    height: 3px;
+    background-color: #fff;
+}
+editable-label-text-input .clear-x span:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+editable-label-text-input .clear-x span:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+editable-label-select-input {
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+}
+editable-label-select-input > * {
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+}
+editable-label-select-input select {
+    width: 100%;
+    font-size: 1em;
+    padding: 5px 1.2em 5px 5px;
+}
