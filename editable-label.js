@@ -251,7 +251,7 @@ customElements.define("editable-label", class extends HTMLElement {
     }
 
     get error() {
-        return this.__error ? this.__error : ()=>{};
+        return this.__error ? this.__error : (response, newValue)=>response.text();
     }
     set error(val) {
         if (typeof val == "function") this.__error = val;
@@ -613,10 +613,17 @@ customElements.define("editable-label", class extends HTMLElement {
                 if (res.ok) {
                     // return {newValue: newval, response: res};
                     const jsonres = await res.json();
-                    (this.success)(jsonres, newval);
+                    const result = (this.success)(jsonres, newval);
+                    if (typeof result == "string") {
+                        throw new Error(result);
+                    }
+                    else if (typeof result == "object") {
+                        if (result.newValue === undefined) throw new Error("newValue must be defined");
+                        newval = result.newValue
+                    }
                 }
                 else {
-                    const resmsg = await res.text();
+                    const resmsg = await (this.error)(res, newval);
                     throw new Error(resmsg);
                 }
                 //#endregion
@@ -644,8 +651,7 @@ customElements.define("editable-label", class extends HTMLElement {
         }
         catch (err) {
             //#region error handling
-            log(err, err.message)
-            (this.error)(err.message, newval);
+            // log(err, err.message);
             this._errmsg = err.message;
             this._switchMode('edit', false);
             this._elInputElement.focus();
